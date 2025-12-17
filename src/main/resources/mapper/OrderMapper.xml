@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seowon.coding.domain.mapper.OrderMapper">
+
+    <resultMap id="OrderResultMap" type="com.seowon.coding.domain.model.Order">
+        <id     property="id"            column="id"/>
+        <result property="customerName"  column="customer_name"/>
+        <result property="customerEmail" column="customer_email"/>
+        <result property="status"        column="status"
+                javaType="com.seowon.coding.domain.model.Order$OrderStatus"/>
+        <result property="orderDate"     column="order_date"/>
+        <result property="totalAmount"   column="total_amount"/>
+    </resultMap>
+
+    <select id="findById" resultMap="OrderResultMap">
+        SELECT id, customer_name, customer_email, status, order_date, total_amount
+        FROM orders
+        WHERE id = #{id}
+    </select>
+
+    <select id="findAll" resultMap="OrderResultMap">
+        SELECT id, customer_name, customer_email, status, order_date, total_amount
+        FROM orders
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders (customer_name, customer_email, status, order_date, total_amount)
+        VALUES (#{customerName}, #{customerEmail}, #{status}, #{orderDate}, #{totalAmount})
+    </insert>
+
+    <update id="update">
+        UPDATE orders
+        SET customer_name  = #{customerName},
+            customer_email = #{customerEmail},
+            status         = #{status},
+            order_date     = #{orderDate},
+            total_amount   = #{totalAmount}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM orders WHERE id = #{id}
+    </delete>
+
+    <select id="existsById" resultType="boolean">
+        SELECT COUNT(1) FROM orders WHERE id = #{id}
+    </select>
+
+    <!--
+        예: findByCustomerEmail, findByStatus, findByOrderDateBetween
+    -->
+
+</mapper>

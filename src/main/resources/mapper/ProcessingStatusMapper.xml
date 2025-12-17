@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seowon.coding.domain.mapper.ProcessingStatusMapper">
+
+    <resultMap id="ProcessingStatusResultMap" type="com.seowon.coding.domain.model.ProcessingStatus">
+        <id     property="id"        column="id"/>
+        <result property="jobId"     column="job_id"/>
+        <result property="total"     column="total"/>
+        <result property="processed" column="processed"/>
+        <result property="status"    column="status"
+                javaType="com.seowon.coding.domain.model.ProcessingStatus$Status"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByJobId" resultMap="ProcessingStatusResultMap">
+        SELECT id, job_id, total, processed, status, updated_at
+        FROM processing_status
+        WHERE job_id = #{jobId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO processing_status (job_id, total, processed, status, updated_at)
+        VALUES (#{jobId}, #{total}, #{processed}, #{status}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE processing_status
+        SET total      = #{total},
+            processed  = #{processed},
+            status     = #{status},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.seowon.coding.domain.mapper.OrderItemMapper">
+
+    <resultMap id="OrderItemResultMap" type="com.seowon.coding.domain.model.OrderItem">
+        <id     property="id"       column="id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="price"    column="price"/>
+        <association property="order"   javaType="com.seowon.coding.domain.model.Order">
+            <id property="id" column="order_id"/>
+        </association>
+        <association property="product" javaType="com.seowon.coding.domain.model.Product">
+            <id property="id" column="product_id"/>
+        </association>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_item (order_id, product_id, quantity, price)
+        VALUES (#{order.id}, #{product.id}, #{quantity}, #{price})
+    </insert>
+
+    <select id="findByOrderId" resultMap="OrderItemResultMap">
+        SELECT id, order_id, product_id, quantity, price
+        FROM order_item
+        WHERE order_id = #{orderId}
+    </select>
+
+    <!--
+        TODO #3: insertBatch (foreach 일괄 INSERT)
+    -->
+
+</mapper>
