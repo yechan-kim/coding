@@ -55,7 +55,7 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public List<Product> findProductsByCategory(String category) {
-        return List.of();
+        return productRepository.findByCategory(category);
     }
 
     /**
