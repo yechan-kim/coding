@@ -1,5 +1,7 @@
 package com.seowon.coding.service;
 
+import static com.seowon.coding.domain.model.Order.OrderStatus.*;
+
 import com.seowon.coding.domain.model.Order;
 import com.seowon.coding.domain.model.OrderItem;
 import com.seowon.coding.domain.model.ProcessingStatus;
@@ -65,7 +67,31 @@ public class OrderService {
      * placeOrder 메소드의 시그니처는 변경하지 않은 채 구현하세요.
      */
     public Order placeOrder(String customerName, String customerEmail, List<Long> productIds, List<Integer> quantities) {
-        return null;
+		Order order = Order.builder()
+			.customerName(customerName)
+			.customerEmail(customerEmail)
+			.status(PENDING)
+			.orderDate(LocalDateTime.now())
+			.build();
+
+		for (int i = 0; i < productIds.size(); i++) {
+			Product product = productRepository.findById(productIds.get(i)).orElseThrow();
+			int quantity = quantities.get(i);
+
+			OrderItem orderItem = OrderItem.builder()
+				.order(order)
+				.product(product)
+				.quantity(quantity)
+				.price(product.getPrice())
+				.build();
+
+			product.decreaseStock(quantity);
+			productRepository.save(product);
+
+			order.addItem(orderItem);
+		}
+
+		return orderRepository.save(order);
     }
 
     /**
