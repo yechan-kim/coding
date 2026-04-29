@@ -136,19 +136,40 @@ public class OrderService {
      */
     @Transactional
     public void bulkShipOrdersParent(String jobId, List<Long> orderIds) {
+		/*
+		  존재하지 않는 작업 Id인 경우 새로운 객체를 생성하는 것이 아닌, 404 예외를 통해서 사용자가 존재하지 않는 작업의 Id를 입력했다는 사실을 반환하는게 좋을 것 같습니다.
+		  이는 `.orELseGet()` 메서드 대신 `.orElseThrow()` 메서드를 사용하면, 해결할 수 있을 것 같습니다.
+		 */
         ProcessingStatus ps = processingStatusRepository.findByJobId(jobId)
                 .orElseGet(() -> processingStatusRepository.save(ProcessingStatus.builder().jobId(jobId).build()));
+
         ps.markRunning(orderIds == null ? 0 : orderIds.size());
+		/*
+		  두번째 `save` 로직에서 변경된 모든 사항을 반영해서 저장하고 있기 때문에, 해당 로직은 불필요하다고 생각합니다.
+		*/
         processingStatusRepository.save(ps);
 
         int processed = 0;
+
+		/*
+		  `orderIds` 에 대한 null check 로직이 2번 수행되고 있습니다. `if` 문을 사용해서 `orderIds` 가 `null`인 경우와 그렇지 않은 경우를 나눠서 진행하면, 불필요한 연산을 줄일 수 있을 것 같습니다.
+		  혹시 코드의 가독성을 위해서 진행을 한 부분이라면, `ps.markRunning(orderIds)` 로직 이전에 `orderIds == null ? List.<Long>of() : orderIds` 로직을 수행하면, 가독성과 함께 연산횟수도 줄일 수 있을 것 같습니다.
+		 */
         for (Long orderId : (orderIds == null ? List.<Long>of() : orderIds)) {
             try {
                 // 오래 걸리는 작업 이라는 가정 시뮬레이션 (예: 외부 시스템 연동, 대용량 계산 등)
                 orderRepository.findById(orderId).ifPresent(o -> o.setStatus(Order.OrderStatus.PROCESSING));
                 // 중간 진행률 저장
                 this.updateProgressRequiresNew(jobId, ++processed, orderIds.size());
+			/*
+			  `catch` 문에서 `Exception`으로 잡을 경우 모든 예외가 잡히게 됩니다. 이는 의도치 않은 예외도 같이 `catch` 문에 잡히기 때문에, 매우 위험한 로직이라고 생각합니다.
+			  의도한 예외만 `catch` 문이 잡을 수 있도록 수정 부탁드립니다.
+			*/
             } catch (Exception e) {
+			/*
+			  `catch` 문 내부에 아무런 로직이 없습니다. 이는 `catch` 문에 잡힌 예외를 허용하는 의미입니다. 이 경우 추후 디버깅을 수행할 때, 원인을 찾는데, 어려움이 발생할 가능성이 높습니다.
+			  warn 로그 같은 방법으로 해당 부분에서 예외가 발생했다는 내용을 추가하면, 추후 디버깅을 할 때 원인을 찾는데 큰 도움이 될 것 같습니다.
+			*/
             }
         }
         ps = processingStatusRepository.findByJobId(jobId).orElse(ps);
