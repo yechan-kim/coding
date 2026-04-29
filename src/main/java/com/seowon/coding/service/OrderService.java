@@ -1,7 +1,5 @@
 package com.seowon.coding.service;
 
-import static com.seowon.coding.domain.model.Order.OrderStatus.*;
-
 import com.seowon.coding.domain.model.Order;
 import com.seowon.coding.domain.model.OrderItem;
 import com.seowon.coding.domain.model.ProcessingStatus;
@@ -15,8 +13,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,23 +63,13 @@ public class OrderService {
      * placeOrder 메소드의 시그니처는 변경하지 않은 채 구현하세요.
      */
     public Order placeOrder(String customerName, String customerEmail, List<Long> productIds, List<Integer> quantities) {
-		Order order = Order.builder()
-			.customerName(customerName)
-			.customerEmail(customerEmail)
-			.status(PENDING)
-			.orderDate(LocalDateTime.now())
-			.build();
+		Order order = Order.create(customerName, customerEmail);
 
 		for (int i = 0; i < productIds.size(); i++) {
 			Product product = productRepository.findById(productIds.get(i)).orElseThrow();
 			int quantity = quantities.get(i);
 
-			OrderItem orderItem = OrderItem.builder()
-				.order(order)
-				.product(product)
-				.quantity(quantity)
-				.price(product.getPrice())
-				.build();
+			OrderItem orderItem = OrderItem.create(order, product, quantity);
 
 			product.decreaseStock(quantity);
 			productRepository.save(product);
@@ -110,15 +96,7 @@ public class OrderService {
             throw new IllegalArgumentException("orderReqs invalid");
         }
 
-        Order order = Order.builder()
-                .customerName(customerName)
-                .customerEmail(customerEmail)
-                .status(Order.OrderStatus.PENDING)
-                .orderDate(LocalDateTime.now())
-                .items(new ArrayList<>())
-                .totalAmount(BigDecimal.ZERO)
-                .build();
-
+        Order order = Order.create(customerName, customerEmail);
 
         BigDecimal subtotal = BigDecimal.ZERO;
         for (OrderProduct req : orderProducts) {
@@ -134,12 +112,7 @@ public class OrderService {
                 throw new IllegalStateException("insufficient stock for product " + pid);
             }
 
-            OrderItem item = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(qty)
-                    .price(product.getPrice())
-                    .build();
+            OrderItem item = OrderItem.create(order, product, qty);
             order.getItems().add(item);
 
             product.decreaseStock(qty);

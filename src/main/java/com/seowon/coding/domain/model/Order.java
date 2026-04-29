@@ -76,4 +76,15 @@ public class Order {
     public enum OrderStatus {
         PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
     }
+
+	public static Order create(String customerName, String customerEmail) {
+		return Order.builder()
+			.customerName(customerName)
+			.customerEmail(customerEmail)
+			.status(Order.OrderStatus.PENDING)
+			.orderDate(LocalDateTime.now())
+			.items(new ArrayList<>())
+			.totalAmount(BigDecimal.ZERO)
+			.build();
+	}
 }
