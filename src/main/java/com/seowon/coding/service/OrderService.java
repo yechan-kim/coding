@@ -66,7 +66,8 @@ public class OrderService {
 		Order order = Order.create(customerName, customerEmail);
 
 		for (int i = 0; i < productIds.size(); i++) {
-			Product product = productRepository.findById(productIds.get(i)).orElseThrow();
+			long id = productIds.get(i);
+			Product product = productRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
 			int quantity = quantities.get(i);
 
 			OrderItem orderItem = OrderItem.create(order, product, quantity);
